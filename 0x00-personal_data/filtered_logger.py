@@ -5,9 +5,10 @@
 import re
 import os
 import mysql.connector
-from typing import List, Tuple
+from typing import List
 import logging
-PII_FIELDS: Tuple[str] = ('email', 'phone', 'ssn', 'password', 'ip')
+
+PII_FIELDS: tuple() = ('email', 'phone', 'ssn', 'password', 'ip')
 
 
 class RedactingFormatter(logging.Formatter):
@@ -49,18 +50,18 @@ def get_logger() -> logging.Logger:
     """return a logger object"""
     logger = logging.getLogger('user_data')
     logger.propagate = False
-    logger.setLevel('INFO')
+    logger.setLevel(logging.INFO)
     handler = logging.StreamHandler()
     handler.setFormatter(RedactingFormatter())
     logger.addHandler(handler)
     return logger
 
 
-def get_db() -> mysql.connector:
+def get_db() -> mysql.connector.connection.MySQLConnection:
     """return a database connector"""
-    db = os.getenv('PERSONAL_DATA_DB_NAME')
-    host = os.getenv('PERSONAL_DATA_DB_HOST', 'localhost')
-    pwd = os.getenv('PERSONAL_DATA_DB_PASSWORD', '')
-    user = os.getenv('PERSONAL_DATA_DB_USERNAME', 'root')
+    db: str = os.getenv('PERSONAL_DATA_DB_NAME')
+    host: str = os.getenv('PERSONAL_DATA_DB_HOST', 'localhost')
+    pwd: str = os.getenv('PERSONAL_DATA_DB_PASSWORD', '')
+    user: str = os.getenv('PERSONAL_DATA_DB_USERNAME', 'root')
     return mysql.connector.connect(user=user, password=pwd, host=host,
                                    database=db)
