@@ -8,7 +8,7 @@ import mysql.connector
 from typing import List
 import logging
 
-PII_FIELDS: tuple() = ('email', 'phone', 'ssn', 'password', 'ip')
+PII_FIELDS: tuple() = ('name', 'email', 'phone', 'ssn', 'password')
 
 
 class RedactingFormatter(logging.Formatter):
@@ -52,7 +52,7 @@ def get_logger() -> logging.Logger:
     logger.propagate = False
     logger.setLevel(logging.INFO)
     handler = logging.StreamHandler()
-    handler.setFormatter(RedactingFormatter())
+    handler.setFormatter(RedactingFormatter(PII_FIELDS))
     logger.addHandler(handler)
     return logger
 
@@ -65,3 +65,23 @@ def get_db() -> mysql.connector.connection.MySQLConnection:
     user: str = os.getenv('PERSONAL_DATA_DB_USERNAME', 'root')
     return mysql.connector.connect(user=user, password=pwd, host=host,
                                    database=db)
+
+
+def main():
+    """filter database contents"""
+    connection = get_db()
+    cursor = connection.cursor()
+    cursor.execute("DESCRIBE users")
+    columns = cursor.fetchall()
+    cursor.execute("SELECT * FROM users")
+    rows = cursor.fetchall()
+    logger = get_logger()
+    for row in rows:
+        message = ''
+        for i, column in enumerate(columns):
+            message += '{}={}; '.format(column[0], row[i])
+        logger.info(message[:-1])
+
+
+if __name__ == '__main__':
+    main()
