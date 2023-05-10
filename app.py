@@ -8,13 +8,13 @@ app = Flask(__name__)
 
 
 @app.route('/', methods=['GET'])
-def home():
+def home() -> jsonify:
     """home index"""
     return jsonify({"message": "Bienvenue"})
 
 
 @app.route('/users', methods=['POST'], strict_slashes=False)
-def users():
+def users() -> jsonify:
     """registers new users to the system"""
     data = request.form
     email = data.get("'email")
