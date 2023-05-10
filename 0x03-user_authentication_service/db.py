@@ -33,24 +33,30 @@ class DB:
 
     def add_user(self, email: str, hashed_password: str) -> User:
         """add a new user to database"""
-        user = User(email=email, hashed_password=hashed_password)
-        self._session.add(user)
-        self._session.commit()
-        return user
+        try:
+            user = User(email=email, hashed_password=hashed_password)
+            self._session.add(user)
+            self._session.commit()
+        except Exception:
+            self._session.rollback()
+            user = None
+        finally:
+            return user
 
-    def find_user_by(self, **kwargs: dict) -> User:
+    def find_user_by(self, **kwargs) -> User:
         """filter user based on args"""
         for k, v in kwargs.items():
-            try:
-                val = 'User.' + k
-                return self._session.query(User).filter(eval(val) == v).one()
-            except Exception:
-                if NoResultFound:
-                    raise NoResultFound
-                else:
-                    raise InvalidRequestError
+            if not hasattr(User, k):
+                raise InvalidRequestError
+            user = self._session.query(User). \
+                filter(eval('User.' + k) == v).first()
+            if not user:
+                raise NoResultFound
+            else:
+                break
+        return user
 
-    def update_user(self, user_id: int, **kwargs: dict) -> None:
+    def update_user(self, user_id: int, **kwargs) -> None:
         """update existing user data"""
         user = self.find_user_by(id=user_id)
         for k, v in kwargs.items():
