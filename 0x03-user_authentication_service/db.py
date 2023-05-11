@@ -17,7 +17,7 @@ class DB:
     def __init__(self) -> None:
         """Initialize a new DB instance
         """
-        self._engine = create_engine("sqlite:///a.db", echo=False)
+        self._engine = create_engine("sqlite:///a.db", echo=True)
         Base.metadata.drop_all(self._engine)
         Base.metadata.create_all(self._engine)
         self.__session = None
@@ -50,9 +50,10 @@ class DB:
                 raise InvalidRequestError
             val = getattr(User, k)
             user = self._session.query(User).filter(val == v).first()
-            if user:
+            if not user:
+                raise NoResultFound
+            else:
                 return user
-        raise NoResultFound
 
     def update_user(self, user_id: int, **kwargs) -> None:
         """update existing user data"""
